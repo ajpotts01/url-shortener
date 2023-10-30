@@ -1,0 +1,52 @@
+name: ci-application
+
+on:
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  style:
+    name: style
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Setup Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: "1.21"
+
+      - name: Setup staticcheck
+        run: go install honnef.co/go/tools/cmd/staticcheck@latest
+
+      - name: Checkout branch
+        uses: actions/checkout@v3
+
+      - name: Run style checks
+        run: |
+          cd application/src
+          test -z $(go fmt ./...)
+          staticcheck ./...
+    
+  tests:
+    name: tests
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Setup Go
+        uses: actions/setup-go@v4
+
+      - name: Setup gosec
+        run: go install github.com/securego/gosec/v2/cmd/gosec@latest
+
+      - name: Checkout branch
+        uses: actions/checkout@v3
+
+      - name: Run tests
+        run: |
+          cd application/src
+          go test ./... -cover
+
+      - name: Run security checks
+        run: |
+          cd application/src
+          gosec ./...
