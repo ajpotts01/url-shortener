@@ -1,0 +1,48 @@
+name: ci-application
+
+on:
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  style:
+    name: style
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: "1.5.6"
+
+      - name: Checkout branch
+        uses: actions/checkout@v3
+
+      - name: Run format check
+        run: |
+          cd infrastructure
+          test -z $(terraform fmt -recursive)
+  
+  plan:
+    name: plan
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: "1.5.6"
+
+      - name: Checkout branch
+        uses: actions/checkout@v3
+
+      - name: Terraform init
+        run: |
+          cd infrastructure/environments/prod
+          terraform init -backend-config terraform.tfbackend
+
+      - name: Terraform plan
+        run: |
+          cd infrastructure/environments/prod
+          terraform plan -var-file terraform.tfvars
+  
