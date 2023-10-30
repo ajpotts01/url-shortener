@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"net/http"
+	"time"
 )
 
 func main() {
@@ -18,8 +19,9 @@ func main() {
 	router.Mount("/v1", getApiRouterV1(apiConfig))
 
 	server := &http.Server{
-		Addr:    ":8080",
-		Handler: router,
+		Addr:              ":8080",
+		Handler:           router,
+		ReadHeaderTimeout: 15 * time.Second,
 	}
 
 	log.Printf("Now listening on port 8080")
