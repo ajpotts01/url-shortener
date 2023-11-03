@@ -1,8 +1,11 @@
-name: ci-infrastructure
+name: cd-infrastructure
 
 on:
-  pull_request:
-    branches: [ main ]
+  push:
+      branches: [ main ]
+      paths:
+      - "application/**"
+  workflow_dispatch:
 
 env:
   gcp_project: ${{ secrets.GCP_PROJECT }}
@@ -12,27 +15,9 @@ env:
   env_name: prod
   app_name: url-shortener
 
-jobs:
-  style:
-    name: style
-    runs-on: ubuntu-22.04
-
-    steps:
-      - name: Setup OpenTofu
-        uses: opentofu/setup-opentofu@v1
-        with:
-          tofu_version: 1.6.0-alpha3
-
-      - name: Checkout branch
-        uses: actions/checkout@v3
-
-      - name: Run format check
-        run: |
-          cd infrastructure
-          test -z $(tofu fmt -recursive)
-  
-  plan:
-    name: plan
+jobs:  
+  apply:
+    name: apply
     runs-on: ubuntu-22.04
 
     steps:
@@ -54,15 +39,10 @@ jobs:
           cd infrastructure/environments/prod
           tofu init -backend-config="bucket=${{ env.gcp_state_bucket }}"
 
-      - name: Tofu validate
+      - name: Tofu apply
         run: |
           cd infrastructure/environments/prod
-          tofu validate
-
-      - name: Tofu plan
-        run: |
-          cd infrastructure/environments/prod
-          tofu plan -var "project_id=${{ env.gcp_project }}" \
+          tofu apply -auto-approve -var "project_id=${{ env.gcp_project }}" \
           -var "env=${{ env.env_name }}" \
           -var "app_name=${{ env.app_name }}"
   
