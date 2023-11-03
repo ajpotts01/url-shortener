@@ -10,10 +10,10 @@ jobs:
     runs-on: ubuntu-22.04
 
     steps:
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v2
+      - name: Setup OpenTofu
+        uses: opentofu/setup-opentofu@v1
         with:
-          terraform_version: "1.5.6"
+          tofu_version: 1.6.0-alpha3
 
       - name: Checkout branch
         uses: actions/checkout@v3
@@ -21,27 +21,27 @@ jobs:
       - name: Run format check
         run: |
           cd infrastructure
-          test -z $(terraform fmt -recursive)
+          test -z $(tofu fmt -recursive)
   
   plan:
     name: plan
     runs-on: ubuntu-22.04
 
     steps:
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v2
+      - name: Setup OpenTofu
+        uses: opentofu/setup-opentofu@v1
         with:
-          terraform_version: "1.5.6"
+          tofu_version: 1.6.0-alpha3
 
       - name: Checkout branch
         uses: actions/checkout@v3
 
-      - name: Terraform init
+      - name: Tofu init
         run: |
           cd infrastructure/environments/prod
-          terraform init -backend-config terraform.tfbackend
+          tofu init -backend-config terraform.tfbackend
 
-      - name: Terraform plan
+      - name: Tofu plan
         run: |
           cd infrastructure/environments/prod
           terraform plan -var-file terraform.tfvars
