@@ -30,7 +30,7 @@ resource "google_service_account_iam_member" "identity_federation" {
 }
 
 output "google_iam_workload_identity_pool_provider_github_name" {
-  description                            = "Workload Identity Pool Provider ID"
+  description = "Workload Identity Pool Provider ID"
   value       = google_iam_workload_identity_pool_provider.github_actions_provider.name
   depends_on  = [google_iam_workload_identity_pool_provider.github_actions_provider]
 }
