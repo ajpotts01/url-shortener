@@ -1,8 +1,8 @@
 module "service_api" {
-  source   = "../../modules/service_api"
-  app_name = var.app_name
+  source     = "../../modules/service_api"
+  app_name   = var.app_name
   project_id = var.project_id
-  env = var.env
+  env        = var.env
 }
 
 module "service_account" {
@@ -14,10 +14,10 @@ module "service_account" {
 }
 
 module "workload_identity" {
-  source = "../../modules/workload_identity"
-  project_id = var.project_id
-  env = "dev"
-  app_name = var.app_name
+  source              = "../../modules/workload_identity"
+  project_id          = var.project_id
+  env                 = "dev"
+  app_name            = var.app_name
   sa_provisioner_name = var.sa_provisioner_name
-  depends_on = [ module.service_account, module.service_api ]
+  depends_on          = [module.service_account, module.service_api]
 }
