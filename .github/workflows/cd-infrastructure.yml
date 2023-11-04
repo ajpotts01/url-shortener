@@ -1,0 +1,55 @@
+name: cd-infrastructure
+
+on:
+  push:
+      branches: [ main ]
+      paths:
+      - "infrastructure/**"
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  gcp_project: ${{ secrets.GCP_PROJECT }}
+  gcp_sa_name: ${{ secrets.GCP_SA_NAME }}
+  gcp_workload_provider: ${{ secrets.GCP_WORKLOAD_PROVIDER }}
+  gcp_state_bucket: ${{ secrets.GCP_STATE_BUCKET }}
+  env_name: prod
+  app_name: url-shortener
+
+jobs:  
+  apply:
+    name: apply
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Setup OpenTofu
+        uses: opentofu/setup-opentofu@v1
+        with:
+          tofu_version: 1.6.0-alpha3
+
+      - name: Checkout branch
+        uses: actions/checkout@v3
+
+      - name: Activate service account
+        uses: google-github-actions/auth@v1
+        with:
+          create_credentials_file: true
+          workload_identity_provider: ${{ env.gcp_workload_provider }}
+          service_account: ${{ env.gcp_sa_name }}
+        
+      - name: Tofu init
+        run: |
+          cd infrastructure/environments/prod
+          tofu init -backend-config="bucket=${{ env.gcp_state_bucket }}"
+
+      - name: Tofu apply
+        run: |
+          cd infrastructure/environments/prod
+          tofu apply -auto-approve -var "project_id=${{ env.gcp_project }}" \
+          -var "env=${{ env.env_name }}" \
+          -var "app_name=${{ env.app_name }}" \
+          -var "sa_provisioner_name=${{ env.gcp_sa_name }}"
+  
