@@ -12,3 +12,12 @@ module "service_account" {
   app_name   = var.app_name
   depends_on = [module.service_api]
 }
+
+module "workload_identity" {
+  source = "../../modules/workload_identity"
+  project_id = var.project_id
+  env = "dev"
+  app_name = var.app_name
+  sa_provisioner_name = var.sa_provisioner_name
+  depends_on = [ module.service_account, module.service_api ]
+}

@@ -4,10 +4,14 @@ on:
   pull_request:
     branches: [ main ]
 
+permissions:
+  id-token: write
+  contents: read
+
 env:
   gcp_project: ${{ secrets.GCP_PROJECT }}
   gcp_sa_name: ${{ secrets.GCP_SA_NAME }}
-  gcp_sa_key: ${{ secrets.GCP_SA_KEY }}
+  gcp_workload_provider: ${{ secrets.GCP_WORKLOAD_PROVIDER }}
   gcp_state_bucket: ${{ secrets.GCP_STATE_BUCKET }}
   env_name: prod
   app_name: url-shortener
@@ -47,7 +51,9 @@ jobs:
       - name: Activate service account
         uses: google-github-actions/auth@v1
         with:
-          credentials_json: ${{ env.gcp_sa_key }}
+          create_credentials_file: true
+          workload_identity_provider: ${{ env.gcp_workload_provider }}
+          service_account: ${{ env.gcp_sa_name }}
         
       - name: Tofu init
         run: |
@@ -65,4 +71,5 @@ jobs:
           tofu plan -var "project_id=${{ env.gcp_project }}" \
           -var "env=${{ env.env_name }}" \
           -var "app_name=${{ env.app_name }}"
+          -var "sa_provisioner_name=${{ env.gcp_sa_name }}"
   
