@@ -50,5 +50,6 @@ jobs:
           cd infrastructure/environments/prod
           tofu apply -auto-approve -var "project_id=${{ env.gcp_project }}" \
           -var "env=${{ env.env_name }}" \
-          -var "app_name=${{ env.app_name }}"
+          -var "app_name=${{ env.app_name }}" \
+          -var "sa_provisioner_name=${{ env.gcp_sa_name }}"
   
