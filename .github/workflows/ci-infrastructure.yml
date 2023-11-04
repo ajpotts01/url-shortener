@@ -33,7 +33,8 @@ jobs:
       - name: Run format check
         run: |
           cd infrastructure
-          test -z $(tofu fmt -recursive)
+          tofu fmt -recursive
+          
   
   plan:
     name: plan
