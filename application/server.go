@@ -1,8 +1,8 @@
 package main
 
 import (
-	"github.com/ajpotts01/url-shortener/api"
-	"github.com/ajpotts01/url-shortener/internal/database"
+	"github.com/ajpotts01/url-shortener/application/api"
+	"github.com/ajpotts01/url-shortener/application/internal/database"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/cors"
 )

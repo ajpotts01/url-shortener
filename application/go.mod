@@ -1,4 +1,4 @@
-module github.com/ajpotts01/url-shortener
+module github.com/ajpotts01/url-shortener/application
 
 go 1.21
 
