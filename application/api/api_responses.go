@@ -21,7 +21,9 @@ func validResponse(w http.ResponseWriter, code int, obj interface{}) {
 	_, err = w.Write(resp)
 
 	if err != nil {
-		log.Fatalf("Fatal error responding to request: %s", err)
+		log.Printf("Error responding to request: %s", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
 	}
 }
 
