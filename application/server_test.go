@@ -5,7 +5,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/ajpotts01/url-shortener/api"
+	"github.com/ajpotts01/url-shortener/application/api"
 )
 
 func TestHealth(t *testing.T) {
