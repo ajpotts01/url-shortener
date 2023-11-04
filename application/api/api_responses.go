@@ -18,7 +18,11 @@ func validResponse(w http.ResponseWriter, code int, obj interface{}) {
 	}
 
 	w.WriteHeader(code)
-	w.Write(resp)
+	_, err = w.Write(resp)
+
+	if err != nil {
+		log.Fatalf("Fatal error responding to request: %s", err)
+	}
 }
 
 func errorResponse(w http.ResponseWriter, code int, errorMsg string) {
