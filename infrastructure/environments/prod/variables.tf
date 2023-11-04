@@ -12,3 +12,8 @@ variable "app_name" {
   description = "Application name"
   type        = string
 }
+
+variable "sa_provisioner_name" {
+  description = "Name of service account used for provisioning"
+  type        = string
+}
