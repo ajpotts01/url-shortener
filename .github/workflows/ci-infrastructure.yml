@@ -3,6 +3,8 @@ name: ci-infrastructure
 on:
   pull_request:
     branches: [ main ]
+    paths:
+      - "infrastructure/**"
 
 permissions:
   id-token: write
@@ -33,7 +35,7 @@ jobs:
       - name: Run format check
         run: |
           cd infrastructure
-          tofu fmt -recursive
+          tofu fmt -check -recursive
           
   
   plan:
