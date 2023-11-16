@@ -24,7 +24,7 @@ resource "google_iam_workload_identity_pool_provider" "github_actions_provider" 
   attribute_condition = "assertion.repository_id=='${var.github_repo_id}' && assertion.repository_owner_id=='${var.github_repo_owner_id}'"
 }
 
-resource "google_service_account_iam_member" "identity_federation" {
+resource "google_service_account_iam_member" "identity_federation_repo" {
   service_account_id = "projects/${var.project_id}/serviceAccounts/${var.sa_provisioner_name}@${var.project_id}.iam.gserviceaccount.com"
   role               = "roles/iam.workloadIdentityUser"
   member             = "principalSet://iam.googleapis.com/${google_iam_workload_identity_pool.github_actions_pool.name}/attribute.repository_id/${var.github_repo_id}"
