@@ -20,6 +20,8 @@ resource "google_iam_workload_identity_pool_provider" "github_actions_provider" 
     "attribute.repository_id"       = "assertion.repository_id"       #"711789253"
     "attribute.repository_owner_id" = "assertion.repository_owner_id" #"11265778"
   }
+
+  attribute_condition = "assertion.repository_id=='${var.github_repo_id}' && assertion.repository_owner_id=='${var.github_repo_owner_id}'"
 }
 
 resource "google_service_account_iam_member" "identity_federation" {
