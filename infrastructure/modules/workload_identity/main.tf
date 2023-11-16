@@ -12,13 +12,13 @@ resource "google_iam_workload_identity_pool_provider" "github_actions_provider" 
   display_name                       = "Github Actions"
 
   oidc {
-    allowed_audiences = [ var.allowed_audience ]
-    issuer_uri = "https://token.actions.githubusercontent.com"
+    allowed_audiences = [var.allowed_audience]
+    issuer_uri        = "https://token.actions.githubusercontent.com"
   }
 
   attribute_mapping = {
     "google.subject"                = "assertion.sub"
-    "attribute.repository_id"       = "assertion.repository_id" 
+    "attribute.repository_id"       = "assertion.repository_id"
     "attribute.repository_owner_id" = "assertion.repository_owner_id"
   }
 

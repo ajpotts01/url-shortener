@@ -30,5 +30,5 @@ variable "github_repo_owner_id" {
 
 variable "allowed_audience" {
   description = "Allowed audiences in the OIDC/JWT token"
-  type = string
+  type        = string
 }
