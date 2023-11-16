@@ -21,5 +21,6 @@ module "workload_identity" {
   sa_provisioner_name  = var.sa_provisioner_name
   github_repo_id       = var.github_repo_id
   github_repo_owner_id = var.github_repo_owner_id
+  allowed_audience     = var.allowed_audience
   depends_on           = [module.service_account, module.service_api]
 }

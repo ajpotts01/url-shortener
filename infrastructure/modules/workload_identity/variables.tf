@@ -27,3 +27,8 @@ variable "github_repo_owner_id" {
   description = "ID number of Github repository owner"
   type        = string
 }
+
+variable "allowed_audience" {
+  description = "Allowed audiences in the OIDC/JWT token"
+  type = string
+}
