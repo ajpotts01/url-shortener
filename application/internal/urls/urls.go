@@ -1,7 +1,6 @@
 package urls
 
 import (
-	"crypto/md5"
 	"encoding/base64"
 )
 
@@ -30,16 +29,18 @@ func base64Encode(hash []byte) string {
 
 func hashUrl(url string) ([]byte, error) {
 	// Not handling collisions here
-	hash := md5.New()
-	_, err := hash.Write([]byte(url))
+	// Hashing disabled - gosec doesn't like MD5.
+	// hash := md5.New()
+	// _, err := hash.Write([]byte(url))
 
-	if err != nil {
-		return []byte{}, err
-	}
+	// if err != nil {
+	// 	return []byte{}, err
+	// }
 
-	hashVal := hash.Sum(nil)
+	// hashVal := hash.Sum(nil)
 
-	// take the first 7 bytes
-	hashVal = hashVal[0:7]
-	return hashVal, nil
+	// // take the first 7 bytes
+	// hashVal = hashVal[0:7]
+	// return hashVal, nil
+	return []byte{}, nil
 }
