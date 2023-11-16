@@ -12,7 +12,7 @@ resource "google_iam_workload_identity_pool_provider" "github_actions_provider" 
   display_name                       = "Github Actions"
 
   oidc {
-    issuer_uri        = "https://token.actions.githubusercontent.com"
+    issuer_uri = "https://token.actions.githubusercontent.com"
   }
 
   attribute_mapping = {

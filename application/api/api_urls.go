@@ -42,6 +42,6 @@ func (config *ApiConfig) CreateShortenedUrl(w http.ResponseWriter, r *http.Reque
 	})
 }
 
-func (config *ApiConfig) FetchShortenedUrl(url urlRequest) (Url, error) {
-	return Url{}, nil
-}
+// func (config *ApiConfig) FetchShortenedUrl(url urlRequest) (Url, error) {
+
+// }
