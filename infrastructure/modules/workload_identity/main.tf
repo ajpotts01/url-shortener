@@ -12,7 +12,6 @@ resource "google_iam_workload_identity_pool_provider" "github_actions_provider" 
   display_name                       = "Github Actions"
 
   oidc {
-    allowed_audiences = [var.allowed_audience]
     issuer_uri        = "https://token.actions.githubusercontent.com"
   }
 
