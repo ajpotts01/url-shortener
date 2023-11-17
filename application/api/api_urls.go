@@ -1,6 +1,7 @@
 package api
 
 import (
+	"encoding/json"
 	"log"
 	"net/http"
 
@@ -11,8 +12,9 @@ type urlRequest struct {
 	Url string `json:"url"`
 }
 
-func (config *ApiConfig) CreateShortenedUrl(url urlRequest) (Url, error) {
-	return Url{}, nil
+func (config *ApiConfig) CreateShortenedUrl(w http.ResponseWriter, r *http.Request) {
+	decoder := json.NewDecoder(r.Body)
+	requestParams := urlRequest{}
 	err := decoder.Decode(&requestParams)
 
 	if err != nil {
