@@ -16,6 +16,8 @@ env:
   gcp_sa_name: ${{ secrets.GCP_SA_NAME }}
   gcp_workload_provider: ${{ secrets.GCP_WORKLOAD_PROVIDER }}
   gcp_state_bucket: ${{ secrets.GCP_STATE_BUCKET }}
+  repo_id: ${{ secrets.REPO_ID }}
+  repo_owner_id: ${{ secrets.REPO_OWNER_ID }}
   env_name: prod
   app_name: url-shortener
 
@@ -52,4 +54,6 @@ jobs:
           -var "env=${{ env.env_name }}" \
           -var "app_name=${{ env.app_name }}" \
           -var "sa_provisioner_name=${{ env.gcp_sa_name }}"
+          -var "github_repo_id=${{ env.repo_id }}"
+          -var "github_repo_owner_id=${{ env.repo_owner_id }}"
   
