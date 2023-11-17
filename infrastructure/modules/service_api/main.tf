@@ -22,3 +22,9 @@ resource "google_project_service" "security_token_service" {
   project = var.project_id
   service = "sts.googleapis.com"
 }
+
+# For exporting Terraform
+resource "google_project_service" "cloud_asset_service" {
+  project = var.project_id
+  service = "cloudasset.googleapis.com"
+}
