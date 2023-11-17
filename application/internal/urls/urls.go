@@ -43,4 +43,4 @@ func hashUrl(url string) ([]byte, error) {
 	// hashVal = hashVal[0:7]
 	// return hashVal, nil
 	return []byte{}, nil
-} // throwaway comment to force CI
+}
