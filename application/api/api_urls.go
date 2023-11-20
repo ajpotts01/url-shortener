@@ -15,7 +15,6 @@ type urlRequest struct {
 }
 
 func (config *ApiConfig) CreateShortenedUrl(w http.ResponseWriter, r *http.Request) {
-	//ctx := r.Context()
 	log.Printf("Creating shortened URL")
 	decoder := json.NewDecoder(r.Body)
 	requestParams := urlRequest{}
