@@ -1,6 +1,8 @@
 package main
 
 import (
+	"log"
+
 	"github.com/ajpotts01/url-shortener/application/api"
 	"github.com/ajpotts01/url-shortener/application/internal/database"
 	"github.com/go-chi/chi/v5"
@@ -19,9 +21,13 @@ func getApiConfig(dbConnStr string) (*api.ApiConfig, error) {
 
 func getApiRouterV1(config *api.ApiConfig) *chi.Mux {
 	const healthEndpoint = "/healthz"
+	const createEndpoint = "/create"
 
 	apiRouter := chi.NewRouter()
 	apiRouter.Get(healthEndpoint, api.Health)
+	apiRouter.Post(createEndpoint, config.CreateShortenedUrl)
+
+	log.Printf("API router init: %v", apiRouter)
 
 	return apiRouter
 }

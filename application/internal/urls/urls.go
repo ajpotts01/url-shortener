@@ -30,9 +30,9 @@ func base64Encode(hash []byte) string {
 
 func hashUrl(url string) ([]byte, error) {
 	// Not handling collisions here
-
 	// gosec doesn't like the default choice of MD5
 	hash := sha256.New()
+
 	_, err := hash.Write([]byte(url))
 
 	if err != nil {
@@ -40,8 +40,5 @@ func hashUrl(url string) ([]byte, error) {
 	}
 
 	hashVal := hash.Sum(nil)
-
-	// take the first 7 bytes
-	hashVal = hashVal[0:7]
 	return hashVal, nil
 }
