@@ -5,12 +5,17 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/go-chi/chi/v5"
 	"github.com/joho/godotenv"
 )
 
 func main() {
-	godotenv.Load()
+	err := godotenv.Load()
+
+	if err != nil {
+		log.Printf("Failed to load dotenv: %v\n", err)
+		log.Printf("This is not a fatal error.\n")
+	}
+
 	apiConfig, err := getApiConfig("stub")
 
 	if err != nil {
@@ -21,11 +26,6 @@ func main() {
 
 	router := getAppRouter()
 	router.Mount("/v1", getApiRouterV1(apiConfig))
-
-	chi.Walk(router, func(method string, route string, handler http.Handler, middlewares ...func(http.Handler) http.Handler) error {
-		log.Printf("[%s]: '%s' has %d middlewares\n", method, route, len(middlewares))
-		return nil
-	})
 
 	server := &http.Server{
 		Addr:              ":6666",
