@@ -1,7 +1,9 @@
 package main
 
 import (
+	"context"
 	"log"
+	"os"
 
 	"github.com/ajpotts01/url-shortener/application/api"
 	"github.com/ajpotts01/url-shortener/application/internal/database"
@@ -10,12 +12,15 @@ import (
 )
 
 func getApiConfig(dbConnStr string) (*api.ApiConfig, error) {
-	dbConn := database.Database{
-		ConnStr: dbConnStr,
-	}
+	projectId := os.Getenv("PROJECT_ID")
+	databaseId := os.Getenv("DATABASE_ID")
+
+	dbConn := database.CreateConnection(context.Background(), projectId, databaseId)
 
 	return &api.ApiConfig{
-		DbConn: dbConn,
+		DbConn: &database.Database{
+			DbClient: dbConn,
+		},
 	}, nil
 }
 
