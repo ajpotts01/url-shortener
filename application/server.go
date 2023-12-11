@@ -24,13 +24,15 @@ func getApiConfig(dbConnStr string) (*api.ApiConfig, error) {
 	}, nil
 }
 
-func getApiRouterV1(config *api.ApiConfig) *chi.Mux {
+func getApiRouter(config *api.ApiConfig) *chi.Mux {
 	const healthEndpoint = "/healthz"
 	const createEndpoint = "/create"
+	const fetchEndpoint = "/{key}"
 
 	apiRouter := chi.NewRouter()
 	apiRouter.Get(healthEndpoint, api.Health)
 	apiRouter.Post(createEndpoint, config.CreateShortenedUrl)
+	apiRouter.Get(fetchEndpoint, config.FetchShortenedUrl)
 
 	log.Printf("API router init: %v", apiRouter)
 

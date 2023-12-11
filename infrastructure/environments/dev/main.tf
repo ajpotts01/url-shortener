@@ -23,3 +23,11 @@ module "workload_identity" {
   github_repo_owner_id = var.github_repo_owner_id
   depends_on           = [module.service_account, module.service_api]
 }
+
+module "firestore" {
+  source     = "../../modules/firestore"
+  project_id = var.project_id
+  env        = "dev"
+  app_name   = var.app_name
+  depends_on = [module.service_account, module.service_api]
+}

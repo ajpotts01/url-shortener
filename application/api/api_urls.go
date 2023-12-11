@@ -1,19 +1,23 @@
 package api
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
 
+	"github.com/ajpotts01/url-shortener/application/internal/database"
 	"github.com/ajpotts01/url-shortener/application/internal/urls"
+	"github.com/go-chi/chi/v5"
 )
 
 type urlRequest struct {
 	Url string `json:"url"`
 }
 
+// POST /v1/create
 func (config *ApiConfig) CreateShortenedUrl(w http.ResponseWriter, r *http.Request) {
 	log.Printf("Creating shortened URL")
 	decoder := json.NewDecoder(r.Body)
@@ -49,7 +53,20 @@ func (config *ApiConfig) CreateShortenedUrl(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
+	dbParams := database.CreateUrlParams{
+		Key:      urlShortKey,
+		UrlLong:  requestParams.Url,
+		UrlShort: urlShort,
+	}
+
 	// TODO: Save to DB
+	err = config.DbConn.CreateUrl(context.Background(), dbParams)
+
+	if err != nil {
+		log.Printf("Error saving to database: %v", err)
+		errorResponse(w, http.StatusInternalServerError, err.Error())
+		return
+	}
 
 	validResponse(w, http.StatusCreated, Url{
 		Key:      urlShortKey,
@@ -58,10 +75,31 @@ func (config *ApiConfig) CreateShortenedUrl(w http.ResponseWriter, r *http.Reque
 	})
 }
 
-// func (config *ApiConfig) FetchShortenedUrl(url urlRequest) (Url, error) {
+// GET /
+func (config *ApiConfig) FetchShortenedUrl(w http.ResponseWriter, r *http.Request) {
+	urlKey := chi.URLParam(r, "key")
 
-// }
-// urlShort = constructShortUrl(protocol, domain, port, urlShortKey)
+	w.Header().Set("Content-Type", "application/json")
+
+	params := database.FetchUrlParams{
+		Key: urlKey,
+	}
+
+	url, err := config.DbConn.FetchUrl(context.Background(), params)
+
+	if err != nil {
+		log.Printf("Error fetching URL: %v", err)
+		errorResponse(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	validResponse(w, http.StatusOK, Url{
+		Key:      urlKey,
+		UrlLong:  url.UrlLong,
+		UrlShort: url.UrlShort,
+	})
+}
+
 func constructShortUrl(protocol string, domain string, port string, shortKey string) string {
 	urlShort := fmt.Sprintf("%s://%s", protocol, domain)
 

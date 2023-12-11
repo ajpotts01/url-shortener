@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/joho/godotenv"
@@ -25,14 +26,19 @@ func main() {
 	log.Printf("API config: %v", apiConfig)
 
 	router := getAppRouter()
-	router.Mount("/v1", getApiRouterV1(apiConfig))
+
+	// Normally for an API, would do a V1, V2 mount etc.
+	// But this is a URL shortener, and expected experience is not to access www.url.com/v1/{key}...
+	router.Mount("/", getApiRouter(apiConfig))
+
+	port := os.Getenv("PORT")
 
 	server := &http.Server{
-		Addr:              ":6666",
+		Addr:              ":" + port,
 		Handler:           router,
 		ReadHeaderTimeout: 15 * time.Second,
 	}
 
-	log.Printf("Now listening on port 6666")
+	log.Printf("Now listening on port %v", port)
 	log.Fatal(server.ListenAndServe())
 }
