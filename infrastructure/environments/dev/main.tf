@@ -31,3 +31,11 @@ module "firestore" {
   app_name   = var.app_name
   depends_on = [module.service_account, module.service_api]
 }
+
+module "artifact_registry" {
+  source     = "../../modules/artifact_registry"
+  project_id = var.project_id
+  env        = "dev"
+  app_name   = var.app_name
+  depends_on = [module.service_api]
+}
