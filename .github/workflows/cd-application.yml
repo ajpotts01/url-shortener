@@ -32,7 +32,9 @@ jobs:
 
       - name: Build production
         working-directory: ./scripts
-        run: ./build-prod.sh
+        run: |
+          chmod +x ./build-prod.sh
+          ./build-prod.sh
       
       - name: Deployment - activate service account
         uses: google-github-actions/auth@v1
