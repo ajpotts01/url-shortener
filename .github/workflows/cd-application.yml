@@ -1,0 +1,97 @@
+name: cd-application
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - "application/**"
+      - ".github/workflows/cd-application.yml"
+  workflow_dispatch:
+
+env:
+  app_name: url-shortener
+  app_region: us-central1
+  container_rego: apps
+  gcp_project: ${{ secrets.GCP_PROJECT }}
+  gcp_project_number: ${{ secrets.GCP_PROJECT_NUMBER }}
+  gcp_region: ${{ secrets.GCP_REGION }}
+
+jobs:
+  deploy:
+    name: deploy
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Go setup
+        uses: actions/setup-go@v4
+        with:
+          go-version: "1.21"
+
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Build production
+        working-directory: ./scripts
+        run: ./build-prod.sh
+      
+      - name: Deployment - activate service account
+        uses: google-github-actions/auth@v1
+        env:
+          gcp_workload_provider: ${{ secrets.GCP_WORKLOAD_PROVIDER }}
+          gcp_sa_name: ${{ secrets.GCP_SA_NAME }}
+        with:
+          create_credentials_file: true
+          workload_identity_provider: ${{ env.gcp_workload_provider }}
+          service_account: ${{ env.gcp_sa_name }}
+
+      - name: Deployment - set up gcloud CLI
+        uses: google-github-actions/setup-gcloud@v1
+        with:
+          version: ">= 363.0.0"
+          
+      # Differing opinions on this.
+      # Is it best to build with Docker here, or send to gcloud build?
+      # I've typically sent to gcloud build, but have seen a lot of local Docker calls lately.
+      - name: Build Docker image
+        run: docker build -t ${{ env.app_name }} .
+      
+      - name: Tag Docker image
+        run: |
+          CONTAINER_IMAGE=${{ env.app_region }}-docker.pkg.dev/${{ env.gcp_project }}/${{ env.app_name }}-prod/${{ env.app_name }}
+          docker image tag ${{ env.app_name }} $CONTAINER_IMAGE:latest
+          docker image tag ${{ env.app_name }} $CONTAINER_IMAGE:prod
+
+      - name: Push to Artifact Registry
+        run: |
+          gcloud auth configure-docker ${{ env.app_region }}-docker.pkg.dev
+          CONTAINER_IMAGE=${{ env.app_region }}-docker.pkg.dev/${{ env.gcp_project }}/${{ env.app_name }}-prod/${{ env.app_name }}
+          docker image push --all-tags $CONTAINER_IMAGE
+
+      - name: Setup service manifest
+        env:
+          cloudrun_sa: ${{ secrets.CLOUD_RUN_SA }} 
+          firestore_db: ${{ secrets.FIRESTORE_DB }}     
+        run: |
+          CONTAINER_IMAGE=${{ env.app_region }}-docker.pkg.dev\/${{ env.gcp_project }}\/${{ env.app_name }}-prod\/${{ env.app_name }}
+          sed "s/<PROJECT_NUMBER>/${{ env.gcp_project_number }}/g" ./gcloud-run-manifest.yml \
+          | sed "s/<CONTAINER_IMAGE>/$CONTAINER_IMAGE/g" \
+          | sed "s/<SERVICE_ACCOUNT>/${{ env.cloudrun_sa }}/g" \
+          | sed "s/<PROJECT_ID>/${{ env.gcp_project }}/g" \
+          | sed "s/<DATABASE_ID>/${{ env.firestore_db }}/g" \
+          > ./service.yaml
+
+      - name: Deploy to Cloud Run   
+        run: gcloud run services replace \
+          ./service.yaml \
+          --project=${{ env.gcp_project }}
+
+      - name: Update service with Cloud Run URL
+        run: |
+          URL=$(gcloud run services describe ${{ env.app_name }} --region ${{ env.gcp_region }} --format 'value(status.url)')
+          gcloud run services update ${{ env.app_name }} \
+          --region=${{ env.gcp_region }} \
+          --update-env-vars=DOMAIN_NAME=$URL
+
+
+      
+          
