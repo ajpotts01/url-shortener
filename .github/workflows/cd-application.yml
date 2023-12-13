@@ -3,11 +3,18 @@ name: cd-application
 on:
   push:
     branches: [ main ]
+    paths:
+      - "application/**"
+      - ".github/workflows/cd-application.yml"
+  workflow_dispatch:
 
 env:
   app_name: url-shortener
   app_region: us-central1
   container_rego: apps
+  gcp_project: ${{ secrets.GCP_PROJECT }}
+  gcp_project_number: ${{ secrets.GCP_PROJECT_NUMBER }}
+  gcp_region: ${{ secrets.GCP_REGION }}
 
 jobs:
   deploy:
@@ -50,10 +57,41 @@ jobs:
       
       - name: Tag Docker image
         run: |
-          CONTAINER_IMAGE=${{ env.app_region }}-docker.pkg.dev
-          
+          CONTAINER_IMAGE=${{ env.app_region }}-docker.pkg.dev/${{ env.gcp_project }}/${{ env.app_name }}-prod/${{ env.app_name }}
+          docker image tag ${{ env.app_name }} $CONTAINER_IMAGE:latest
+          docker image tag ${{ env.app_name }} $CONTAINER_IMAGE:prod
 
-      # TODO: Service manifest.
-      - name: Deploy to Cloud Run
-        run: gcloud run deploy url-shortener
+      - name: Push to Artifact Registry
+        run: |
+          gcloud auth configure-docker ${{ env.app_region }}-docker.pkg.dev
+          CONTAINER_IMAGE=${{ env.app_region }}-docker.pkg.dev/${{ env.gcp_project }}/${{ env.app_name }}-prod/${{ env.app_name }}
+          docker image push --all-tags $CONTAINER_IMAGE
+
+      - name: Setup service manifest
+        env:
+          cloudrun_sa: ${{ secrets.CLOUD_RUN_SA }} 
+          firestore_db: ${{ secrets.FIRESTORE_DB }}     
+        run: |
+          CONTAINER_IMAGE=${{ env.app_region }}-docker.pkg.dev\/${{ env.gcp_project }}\/${{ env.app_name }}-prod\/${{ env.app_name }}
+          sed "s/<PROJECT_NUMBER>/${{ env.gcp_project_number }}/g" ./gcloud-run-manifest.yml \
+          | sed "s/<CONTAINER_IMAGE>/$CONTAINER_IMAGE/g" \
+          | sed "s/<SERVICE_ACCOUNT>/${{ env.cloudrun_sa }}/g" \
+          | sed "s/<PROJECT_ID>/${{ env.gcp_project }}/g" \
+          | sed "s/<DATABASE_ID>/${{ env.firestore_db }}/g" \
+          > ./service.yaml
+
+      - name: Deploy to Cloud Run   
+        run: gcloud run services replace \
+          ./service.yaml \
+          --project=${{ env.gcp_project }}
+
+      - name: Update service with Cloud Run URL
+        run: |
+          URL=$(gcloud run services describe ${{ env.app_name }} --region ${{ env.gcp_region }} --format 'value(status.url)')
+          gcloud run services update ${{ env.app_name }} \
+          --region=${{ env.gcp_region }} \
+          --update-env-vars=DOMAIN_NAME=$URL
+
+
+      
           
