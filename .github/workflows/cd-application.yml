@@ -4,6 +4,11 @@ on:
   push:
     branches: [ main ]
 
+env:
+  app_name: url-shortener
+  app_region: us-central1
+  container_rego: apps
+
 jobs:
   deploy:
     name: deploy
@@ -41,7 +46,12 @@ jobs:
       # Is it best to build with Docker here, or send to gcloud build?
       # I've typically sent to gcloud build, but have seen a lot of local Docker calls lately.
       - name: Build Docker image
-        run: echo "Placeholder"
+        run: docker build -t ${{ env.app_name }} .
+      
+      - name: Tag Docker image
+        run: |
+          CONTAINER_IMAGE=${{ env.app_region }}-docker.pkg.dev
+          
 
       # TODO: Service manifest.
       - name: Deploy to Cloud Run
