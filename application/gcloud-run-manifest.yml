@@ -24,7 +24,7 @@ spec:
         - name: DOMAIN_NAME
           value: localhost
         - name: PROTOCOL
-          value: https
+          value: ""
         - name: PROJECT_ID
           value: <PROJECT_ID>
         - name: DATABASE_ID
