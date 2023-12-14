@@ -8,9 +8,12 @@ on:
       - ".github/workflows/cd-application.yml"
   workflow_dispatch:
 
+permissions:
+  id-token: write
+  contents: read
+
 env:
   app_name: url-shortener
-  app_region: us-central1
   container_rego: apps
   gcp_project: ${{ secrets.GCP_PROJECT }}
   gcp_project_number: ${{ secrets.GCP_PROJECT_NUMBER }}
@@ -31,8 +34,9 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Build production
-        working-directory: ./scripts
-        run: ./build-prod.sh
+        run: |
+          chmod +x ./scripts/build-prod.sh
+          ./scripts/build-prod.sh
       
       - name: Deployment - activate service account
         uses: google-github-actions/auth@v1
@@ -53,26 +57,30 @@ jobs:
       # Is it best to build with Docker here, or send to gcloud build?
       # I've typically sent to gcloud build, but have seen a lot of local Docker calls lately.
       - name: Build Docker image
+        working-directory: ./application
         run: docker build -t ${{ env.app_name }} .
       
       - name: Tag Docker image
+        working-directory: ./application
         run: |
-          CONTAINER_IMAGE=${{ env.app_region }}-docker.pkg.dev/${{ env.gcp_project }}/${{ env.app_name }}-prod/${{ env.app_name }}
+          CONTAINER_IMAGE=${{ env.gcp_region }}-docker.pkg.dev/${{ env.gcp_project }}/${{ env.app_name }}-prod/${{ env.app_name }}
           docker image tag ${{ env.app_name }} $CONTAINER_IMAGE:latest
           docker image tag ${{ env.app_name }} $CONTAINER_IMAGE:prod
 
       - name: Push to Artifact Registry
+        working-directory: ./application
         run: |
-          gcloud auth configure-docker ${{ env.app_region }}-docker.pkg.dev
-          CONTAINER_IMAGE=${{ env.app_region }}-docker.pkg.dev/${{ env.gcp_project }}/${{ env.app_name }}-prod/${{ env.app_name }}
+          gcloud auth configure-docker ${{ env.gcp_region }}-docker.pkg.dev
+          CONTAINER_IMAGE=${{ env.gcp_region }}-docker.pkg.dev/${{ env.gcp_project }}/${{ env.app_name }}-prod/${{ env.app_name }}
           docker image push --all-tags $CONTAINER_IMAGE
 
       - name: Setup service manifest
+        working-directory: ./application      
         env:
           cloudrun_sa: ${{ secrets.CLOUD_RUN_SA }} 
           firestore_db: ${{ secrets.FIRESTORE_DB }}     
         run: |
-          CONTAINER_IMAGE=${{ env.app_region }}-docker.pkg.dev\/${{ env.gcp_project }}\/${{ env.app_name }}-prod\/${{ env.app_name }}
+          CONTAINER_IMAGE="${{ env.gcp_region }}-docker.pkg.dev\/${{ env.gcp_project }}\/${{ env.app_name }}-prod\/${{ env.app_name }}"
           sed "s/<PROJECT_NUMBER>/${{ env.gcp_project_number }}/g" ./gcloud-run-manifest.yml \
           | sed "s/<CONTAINER_IMAGE>/$CONTAINER_IMAGE/g" \
           | sed "s/<SERVICE_ACCOUNT>/${{ env.cloudrun_sa }}/g" \
@@ -81,7 +89,10 @@ jobs:
           > ./service.yaml
 
       - name: Deploy to Cloud Run   
-        run: gcloud run services replace \
+        working-directory: ./application      
+        run: |
+          ls
+          gcloud run services replace \
           ./service.yaml \
           --project=${{ env.gcp_project }}
 

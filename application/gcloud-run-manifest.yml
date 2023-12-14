@@ -1,37 +1,44 @@
-apiVersion: run.googleapis.com/v1
+apiVersion: serving.knative.dev/v1
 kind: Service
 metadata:
-  labels:
-    cloud.googleapis.com/location: us-central1
   name: url-shortener
-  namespace: <PROJECT_NUMBER>
+  namespace: '<PROJECT_NUMBER>'
+  labels:
+    cloud.googleapis.com/location: australia-southeast1
+  annotations:
+    run.googleapis.com/ingress: all
+    run.googleapis.com/ingress-status: all
 spec:
   template:
-    metadata:
-      annotations:
-        client.knative.dev/user-image: <CONTAINER_IMAGE>
-        run.googleapis.com/execution-environment: gen2
     spec:
-      template:
-        spec:
-          containers:
-          - env:
-            - name: DOMAIN_NAME
-              value: localhost
-            - name: PORT
-              value: 8080
-            - name: PROTOCOL
-              value: https
-            - name: PROJECT_ID
-              value: <PROJECT_ID>
-            - name: DATABASE_ID
-              value: <DATABASE_ID>
-            image: <CONTAINER_IMAGE>
-            resources:
-              limits:
-                cpu: 1000m
-                memory: 2Gi
-          serviceAccountName: <SERVICE_ACCOUNT>
-          timeoutSeconds: '3600'
-              
-              
+      containerConcurrency: 80
+      timeoutSeconds: 300
+      serviceAccountName: <SERVICE_ACCOUNT>
+      containers:
+      - name: url-shortener
+        image: <CONTAINER_IMAGE>
+        ports:
+        - name: http1
+          containerPort: 8080
+        env:
+        - name: DOMAIN_NAME
+          value: localhost
+        - name: PROTOCOL
+          value: ""
+        - name: PROJECT_ID
+          value: <PROJECT_ID>
+        - name: DATABASE_ID
+          value: <DATABASE_ID>
+        resources:
+          limits:
+            cpu: 1000m
+            memory: 512Mi
+        startupProbe:
+          timeoutSeconds: 240
+          periodSeconds: 240
+          failureThreshold: 1
+          tcpSocket:
+            port: 8080
+  traffic:
+  - percent: 100
+    latestRevision: true
