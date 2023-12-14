@@ -14,7 +14,6 @@ permissions:
 
 env:
   app_name: url-shortener
-  app_region: us-central1
   container_rego: apps
   gcp_project: ${{ secrets.GCP_PROJECT }}
   gcp_project_number: ${{ secrets.GCP_PROJECT_NUMBER }}
@@ -64,15 +63,15 @@ jobs:
       - name: Tag Docker image
         working-directory: ./application
         run: |
-          CONTAINER_IMAGE=${{ env.app_region }}-docker.pkg.dev/${{ env.gcp_project }}/${{ env.app_name }}-prod/${{ env.app_name }}
+          CONTAINER_IMAGE=${{ env.gcp_region }}-docker.pkg.dev/${{ env.gcp_project }}/${{ env.app_name }}-prod/${{ env.app_name }}
           docker image tag ${{ env.app_name }} $CONTAINER_IMAGE:latest
           docker image tag ${{ env.app_name }} $CONTAINER_IMAGE:prod
 
       - name: Push to Artifact Registry
         working-directory: ./application
         run: |
-          gcloud auth configure-docker ${{ env.app_region }}-docker.pkg.dev
-          CONTAINER_IMAGE=${{ env.app_region }}-docker.pkg.dev/${{ env.gcp_project }}/${{ env.app_name }}-prod/${{ env.app_name }}
+          gcloud auth configure-docker ${{ env.gcp_region }}-docker.pkg.dev
+          CONTAINER_IMAGE=${{ env.gcp_region }}-docker.pkg.dev/${{ env.gcp_project }}/${{ env.app_name }}-prod/${{ env.app_name }}
           docker image push --all-tags $CONTAINER_IMAGE
 
       - name: Setup service manifest
@@ -81,7 +80,7 @@ jobs:
           cloudrun_sa: ${{ secrets.CLOUD_RUN_SA }} 
           firestore_db: ${{ secrets.FIRESTORE_DB }}     
         run: |
-          CONTAINER_IMAGE=${{ env.app_region }}-docker.pkg.dev\/${{ env.gcp_project }}\/${{ env.app_name }}-prod\/${{ env.app_name }}
+          CONTAINER_IMAGE=${{ env.gcp_region }}-docker.pkg.dev\/${{ env.gcp_project }}\/${{ env.app_name }}-prod\/${{ env.app_name }}
           sed "s/<PROJECT_NUMBER>/${{ env.gcp_project_number }}/g" ./gcloud-run-manifest.yml \
           | sed "s/<CONTAINER_IMAGE>/$CONTAINER_IMAGE/g" \
           | sed "s/<SERVICE_ACCOUNT>/${{ env.cloudrun_sa }}/g" \
