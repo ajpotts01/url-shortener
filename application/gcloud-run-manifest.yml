@@ -2,7 +2,7 @@ apiVersion: serving.knative.dev/v1
 kind: Service
 metadata:
   name: url-shortener
-  namespace: <PROJECT_NUMBER>
+  namespace: '<PROJECT_NUMBER>'
   labels:
     cloud.googleapis.com/location: australia-southeast1
   annotations:
