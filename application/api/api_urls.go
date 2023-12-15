@@ -32,7 +32,6 @@ func (config *ApiConfig) CreateShortenedUrl(w http.ResponseWriter, r *http.Reque
 
 	w.Header().Set("Content-Type", "application/json")
 
-	// TODO: Handle collisions
 	urlShortKey, err := urls.GetShortenedUrl(requestParams.Url)
 
 	if err != nil {
@@ -59,7 +58,6 @@ func (config *ApiConfig) CreateShortenedUrl(w http.ResponseWriter, r *http.Reque
 		UrlShort: urlShort,
 	}
 
-	// TODO: Save to DB
 	err = config.DbConn.CreateUrl(context.Background(), dbParams)
 
 	if err != nil {
@@ -83,6 +81,11 @@ func (config *ApiConfig) FetchShortenedUrl(w http.ResponseWriter, r *http.Reques
 
 	params := database.FetchUrlParams{
 		Key: urlKey,
+	}
+
+	if urlKey == "" {
+		errorResponse(w, http.StatusBadRequest, "Please specify a URL key")
+		return
 	}
 
 	url, err := config.DbConn.FetchUrl(context.Background(), params)
